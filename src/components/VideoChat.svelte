@@ -12,7 +12,7 @@
 
   onMount(() => {
     socket = new WebSocket(
-      "ws:whiteboard-server-production-4ec9.up.railway.app"
+      "wss:whiteboard-server-production-4ec9.up.railway.app"
     );
 
     socket.onmessage = async (event) => {
