@@ -13,7 +13,7 @@
 
   onMount(() => {
     socket = new WebSocket(
-      "wss:whiteboard-server-production-4ec9.up.railway.app"
+      "wss://whiteboard-server-production-4ec9.up.railway.app"
     );
 
     socket.onmessage = async (event) => {
@@ -85,7 +85,25 @@
     await peerConnection.setRemoteDescription(
       new RTCSessionDescription(answer)
     );
+
+    updateConnectionStatus(true);
   }
+
+  peerConnection.onconnectionstatechange = () => {
+    if (peerConnection.connectionState === "connected") {
+      // Connection is established
+      updateConnectionStatus(true);
+    } else if (
+      peerConnection.connectionState === "disconnected" ||
+      peerConnection.connectionState === "failed"
+    ) {
+      // Connection is lost
+      updateConnectionStatus(false);
+    } else if (peerConnection.connectionState === "connecting") {
+      // Connection is in progress
+      updateConnectionStatus(true); // This ensures the animation and green color are applied
+    }
+  };
 
   async function handleCandidate(candidate) {
     console.log("Received ICE candidate:", candidate);
@@ -109,10 +127,14 @@
         }
       );
     } else {
-      // Optionally, stop any ongoing animation
-      const animations = connectionElement.getAnimations();
-      animations.forEach((animation) => animation.cancel());
+      stopAnimation();
     }
+  }
+
+  function stopAnimation() {
+    const connectionElement = document.getElementById("connectionStatus");
+    const animations = connectionElement.getAnimations();
+    animations.forEach((animation) => animation.cancel());
   }
 
   function updateConnectionStatus(isConnected) {
@@ -129,23 +151,6 @@
       stopAnimation();
     }
   }
-
-  peerConnection.onconnectionstatechange = () => {
-    if (peerConnection.connectionState === "connected") {
-      // Connection is established
-      updateConnectionStatus(true);
-    } else if (
-      peerConnection.connectionState === "disconnected" ||
-      peerConnection.connectionState === "failed"
-    ) {
-      // Connection is lost
-      updateConnectionStatus(false);
-    } else if (peerConnection.connectionState === "connecting") {
-      // Connection is in progress
-      connectionElement.style.backgroundColor = "green";
-      animateConnection();
-    }
-  };
 </script>
 
 <div>
