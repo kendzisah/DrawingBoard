@@ -17,6 +17,7 @@
 
     socket.onmessage = async (event) => {
       const data = JSON.parse(event.data);
+      console.log("Received message via WebSocket:", data);
 
       if (data.offer) {
         await handleOffer(data.offer);
@@ -36,12 +37,13 @@
       .then((stream) => {
         localStream = stream;
         document.getElementById("localVideo").srcObject = stream;
-
-        socket.onopen = () => {
-          isCaller = true;
-          startWebRTC();
-        };
       });
+  }
+
+  function initiateCall() {
+    isCaller = true;
+    startWebRTC();
+    animateConnection();
   }
 
   async function startWebRTC() {
@@ -49,12 +51,14 @@
     peerConnection.addStream(localStream);
 
     peerConnection.onaddstream = (event) => {
+      console.log("Remote stream added:", event.stream);
       remoteStream = event.stream;
       document.getElementById("remoteVideo").srcObject = remoteStream;
     };
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
+        console.log("Sending ICE candidate:", event.candidate);
         socket.send(JSON.stringify({ candidate: event.candidate }));
       }
     };
@@ -83,6 +87,7 @@
   }
 
   async function handleCandidate(candidate) {
+    console.log("Received ICE candidate:", candidate);
     await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
   }
 
@@ -106,8 +111,8 @@
   <h2>WebRTC Video Chat</h2>
   <div
     id="connectionStatus"
-    on:click={animateConnection}
-    on:keydown={animateConnection}
+    on:click={initiateCall}
+    on:keydown={initiateCall}
     aria-label="Connection Status"
     role="button"
     tabindex="0"
