@@ -11,7 +11,9 @@
   };
 
   onMount(() => {
-    socket = new WebSocket("ws://localhost:8080");
+    socket = new WebSocket(
+      "ws:whiteboard-server-production-4ec9.up.railway.app"
+    );
 
     socket.onmessage = async (event) => {
       const data = JSON.parse(event.data);
