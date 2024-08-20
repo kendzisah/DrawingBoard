@@ -5,6 +5,7 @@
   let peerConnection;
   let socket;
   let isCaller = false;
+  let connectionStatus = false;
 
   const config = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -92,19 +93,59 @@
   }
 
   function animateConnection() {
-    const connectionStatus = document.getElementById("connectionStatus");
-    connectionStatus.animate(
-      [
-        { transform: "scale(1)", opacity: 1 },
-        { transform: "scale(1.2)", opacity: 0.7 },
-        { transform: "scale(1)", opacity: 1 },
-      ],
-      {
-        duration: 1000,
-        iterations: Infinity,
-      }
-    );
+    const connectionElement = document.getElementById("connectionStatus");
+
+    if (connectionStatus) {
+      // Start the animation
+      connectionElement.animate(
+        [
+          { transform: "scale(1)", opacity: 1 },
+          { transform: "scale(1.2)", opacity: 0.7 },
+          { transform: "scale(1)", opacity: 1 },
+        ],
+        {
+          duration: 1000,
+          iterations: Infinity,
+        }
+      );
+    } else {
+      // Optionally, stop any ongoing animation
+      const animations = connectionElement.getAnimations();
+      animations.forEach((animation) => animation.cancel());
+    }
   }
+
+  function updateConnectionStatus(isConnected) {
+    connectionStatus = isConnected;
+    const connectionElement = document.getElementById("connectionStatus");
+
+    if (isConnected) {
+      // Set the background color to green and start the animation
+      connectionElement.style.backgroundColor = "green";
+      animateConnection();
+    } else {
+      // Set the background color to red and stop the animation
+      connectionElement.style.backgroundColor = "red";
+      stopAnimation();
+    }
+  }
+
+  peerConnection.onconnectionstatechange = () => {
+    if (peerConnection.connectionState === "connected") {
+      // Connection is established
+      updateConnectionStatus(true);
+    } else if (
+      peerConnection.connectionState === "disconnected" ||
+      peerConnection.connectionState === "failed"
+    ) {
+      // Connection is lost
+      updateConnectionStatus(false);
+    } else if (peerConnection.connectionState === "connecting") {
+      // Connection is in progress
+      connectionElement.style.backgroundColor = "green";
+      animateConnection();
+    }
+  };
 </script>
 
 <div>
