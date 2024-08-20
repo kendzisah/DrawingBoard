@@ -7,7 +7,8 @@
     "start": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "concurrently \"astro dev\" \"cd server && node server.js\""
   },
   "dependencies": {
     "@astrojs/check": "^0.9.3",
@@ -18,5 +19,8 @@
     "tailwindcss": "^3.4.10",
     "typescript": "^5.5.4",
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
