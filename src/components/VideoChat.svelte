@@ -48,7 +48,10 @@
   }
 
   async function startWebRTC() {
-    peerConnection = new RTCPeerConnection(config);
+    if (!peerConnection) {
+      peerConnection = new RTCPeerConnection(config);
+    }
+
     peerConnection.addStream(localStream);
 
     peerConnection.onaddstream = (event) => {
@@ -61,6 +64,19 @@
       if (event.candidate) {
         console.log("Sending ICE candidate:", event.candidate);
         socket.send(JSON.stringify({ candidate: event.candidate }));
+      }
+    };
+
+    peerConnection.onconnectionstatechange = () => {
+      if (peerConnection.connectionState === "connected") {
+        updateConnectionStatus(true);
+      } else if (
+        peerConnection.connectionState === "disconnected" ||
+        peerConnection.connectionState === "failed"
+      ) {
+        updateConnectionStatus(false);
+      } else if (peerConnection.connectionState === "connecting") {
+        updateConnectionStatus(true);
       }
     };
 
@@ -88,22 +104,6 @@
 
     updateConnectionStatus(true);
   }
-
-  peerConnection.onconnectionstatechange = () => {
-    if (peerConnection.connectionState === "connected") {
-      // Connection is established
-      updateConnectionStatus(true);
-    } else if (
-      peerConnection.connectionState === "disconnected" ||
-      peerConnection.connectionState === "failed"
-    ) {
-      // Connection is lost
-      updateConnectionStatus(false);
-    } else if (peerConnection.connectionState === "connecting") {
-      // Connection is in progress
-      updateConnectionStatus(true); // This ensures the animation and green color are applied
-    }
-  };
 
   async function handleCandidate(candidate) {
     console.log("Received ICE candidate:", candidate);
